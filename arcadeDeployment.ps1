@@ -1,17 +1,7 @@
-### Questions
-
-##
-## In the while loops, like the one for deleting folder contents starting on line 54,
-## will it restart the delete action if the while loop doesn't return false?
-## 
-## On line 28, does the while($procWithWindows) statment, the way it is written, return a true boolean
-## if there are active windows?
-##
-
 ### Initialization
 
 # Lock the computer
-############rundll32.exe user32.dll, LockWorkStation
+########################## rundll32.exe user32.dll, LockWorkStation
 
 ## Set variables
 # Bool for successful copy task
@@ -22,29 +12,34 @@
 #$destFol = "C:\Path\to\destination\folder"
 # Check if the destination folder is empty
 #$emptyDestFol = (Get-ChildItem -Path $destFol -Force -File).Count -gt 0
+# Get the current PowerShell process ID
+$scriptProcessId = $PID
+# Specify the program process name to close that has an active window
+$procWithWindows = Get-Process | Where-Object { $_.MainWindowTitle -ne "" -and $_.ProcessName -ne "powershell" -and $_.Id -ne $scriptProcessId}
 
 ### Primary tasks
 
 ## Close active windows task
-# Get the current PowerShell process ID
-$currentProcessId = $PID
-# Specify the program process name to close that has an active window
-$procWithWindows = Get-Process | Where-Object { $_.MainWindowTitle -ne "" -and $_.ProcessName -ne "powershell" -and $_.Id -ne $currentProcessId }
-# Finds if there are active windows and checks every 5 seconds until there are no active windows
+# Close File Explorer
+########################## Get-Process -Name "explorer" | Stop-Process -Force
+# Finds if there are active windows and closes them, continues until all windows are closed
+Write-Host "No active windows found."
 while ($procWithWindows) {
-    Write-Host "Active Windows Found:"
     foreach ($process in $procWithWindows) {
-        #Specific active windows in the log
-        Write-Host "Process Name: $($process.ProcessName)"
-        Write-Host "Window Title: $($process.MainWindowTitle)"
-        Write-Host "Process ID: $($process.Id)"
-        Write-Host "----------------------"
-        # Close the specified active windows
-        Stop-Process -Id $process.Id -Force
+        # Gets the handle ID of the window
+        $appPID = $process.Id
+        # Write-Host $procWithWindows
+        # Write-Host $process
+        # Write-Host $appPID
+        # Force quit the program using the PID
+        Stop-Process -Id $appPID -Force
+        Start-Sleep -Seconds 2
+        #Resets the active window count
+        $procWithWindows = Get-Process | Where-Object { $_.MainWindowTitle -ne "" -and $_.ProcessName -ne "powershell" -and $_.Id -ne $scriptProcessId}
     }
-    Start-Sleep -Seconds 5
 }
 Write-Host "No active windows found."
+Start-Sleep -Seconds 20
 
 # ## Deleting files task
 # Write-Host "Deleting contents of $destFol..."
