@@ -45,7 +45,9 @@ Write-Host "No active windows found."
 Start-Sleep -Seconds 5
 #>
 
+
 ## Deleting files task
+<#
 Write-Host "$destFol has files in it: $emptyDestFol."
 # Loop until the folder is empty
 while ($emptyDestFol) {
@@ -54,59 +56,60 @@ while ($emptyDestFol) {
         Get-ChildItem -Path $destFol -Force | Remove-Item -Force -Recurse
     }
     # Wait for a short period before checking again
-    Start-Sleep -Milliseconds 100
+    Start-Sleep -Milliseconds 500
     $emptyDestFol = (Get-ChildItem -Path $destFol -Force -File).Count -gt 0
     Write-Host "$destFol has files in it: $emptyDestFol."
 }
 Write-Host "$destFol has files in it: $emptyDestFol."
 Start-Sleep -Seconds 5
+#>
 
-# ## Copying files task
-# # Run the copy function
-# gameCopyTask
+## Copying files task
+# Run the copy function
+gameCopyTask
 
-# if ($allFilesCopied -eq $true) {
-#     Write-Host "All files were copied successfully."
-#     # Restart the computer
-#     Write-Host "Restarting the computer..."
-#     #################Restart-Computer -Force
-# }
-# else {
-#     Write-Host "There were some errors copying the files. Attempting another copy task"
-#     gameCopyTask
-# }
+if ($allFilesCopied -eq $true) {
+    Write-Host "All files were copied successfully."
+    # Restart the computer
+    Write-Host "Restarting the computer..."
+    #################Restart-Computer -Force
+}
+else {
+    Write-Host "There were some errors copying the files. Attempting another copy task"
+    gameCopyTask
+}
 
-# ### Functions
-# function gameCopyTask {
-#     # Copy the contents of the source folder to the destination folder
-#     Write-Host "Copying files from $sourFol to $destFol..."
-#     $copyTask = Copy-Item -Path $sourFol\* -Destination $destFol -Force -Recurse -PassThru
-#     # Check if the copying action is still ongoing
-#     while ($copyTask.Status -eq "Running") {
-#         # Wait for a short duration before checking again
-#         Start-Sleep -Seconds 5
-#     }
-#     # Check if the children files in the source folder are the same as the destination folder
-#     $sourceFiles = Get-ChildItem -Path $sourFol -File -Recurse | Select-Object -ExpandProperty FullName
-#     $destinationFiles = Get-ChildItem -Path $destFol -File -Recurse | Select-Object -ExpandProperty FullName
-#     $areFilesEqual = Compare-Object -ReferenceObject $sourceFiles -DifferenceObject $destinationFiles -IncludeEqual
-#     if ($null -eq $areFilesEqual) {
-#         Write-Host "All files have been successfully copied to $destFol."
-#         global:$allFilesCopied = $true
-#     }
-#     else {
-#         Write-Host "Some files were not copied correctly. Differences found:"
-#         $areFilesEqual | ForEach-Object {
-#             if ($_.SideIndicator -eq "==") {
-#                 Write-Host "File exists in both folders: $($_.InputObject)"
-#             }
-#             elseif ($_.SideIndicator -eq "=>") {
-#                 Write-Host "File was not copied correctly: $($_.InputObject)"
-#             }
-#             elseif ($_.SideIndicator -eq "<=") {
-#                 Write-Host "File exists in destination folder but not in source folder: $($_.InputObject)"
-#             }
-#         }
-#         global:$allFilesCopied = $false
-#     }
-# }
+### Functions
+function gameCopyTask {
+    # Copy the contents of the source folder to the destination folder
+    Write-Host "Copying files from $sourFol to $destFol..."
+    $copyTask = Copy-Item -Path $sourFol\* -Destination $destFol -Force -Recurse -PassThru
+    # Check if the copying action is still ongoing
+    while ($copyTask.Status -eq "Running") {
+        # Wait for a short duration before checking again
+        Start-Sleep -Seconds 5
+    }
+    # Check if the children files in the source folder are the same as the destination folder
+    $sourceFiles = Get-ChildItem -Path $sourFol -File -Recurse | Select-Object -ExpandProperty FullName
+    $destinationFiles = Get-ChildItem -Path $destFol -File -Recurse | Select-Object -ExpandProperty FullName
+    $areFilesEqual = Compare-Object -ReferenceObject $sourceFiles -DifferenceObject $destinationFiles -IncludeEqual
+    if ($null -eq $areFilesEqual) {
+        Write-Host "All files have been successfully copied to $destFol."
+        global:$allFilesCopied = $true
+    }
+    else {
+        Write-Host "Some files were not copied correctly. Differences found:"
+        $areFilesEqual | ForEach-Object {
+            if ($_.SideIndicator -eq "==") {
+                Write-Host "File exists in both folders: $($_.InputObject)"
+            }
+            elseif ($_.SideIndicator -eq "=>") {
+                Write-Host "File was not copied correctly: $($_.InputObject)"
+            }
+            elseif ($_.SideIndicator -eq "<=") {
+                Write-Host "File exists in destination folder but not in source folder: $($_.InputObject)"
+            }
+        }
+        global:$allFilesCopied = $false
+    }
+}
