@@ -1,2 +1,4 @@
-$procId = 11868  # Replace with the actual process ID of the application
-Stop-Process -Id $procId -Force
+$destFol = "C:\gaim-arcade-local\ArcadeGames"
+$isDeleteInProg = (Get-Item -Path $destFol).Attributes -band [System.IO.FileAttributes]::Hidden
+Write-Host $isDeleteInProg
+Start-Sleep 5

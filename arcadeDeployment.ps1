@@ -5,13 +5,15 @@
 
 ## Set variables
 # Bool for successful copy task
-#$allFilesCopied = $null
+$allFilesCopied = $null
 # Specify the source folder where files are being copied from
-#$sourFol = "C:\Path\to\source\folder"
+$sourFol = "C:\Path\to\source\folder"
 # Specify the destination folder where files are being copied to
-#$destFol = "C:\Path\to\destination\folder"
+$destFol = "C:\gaim-arcade-local\ArcadeGames"
 # Check if the destination folder is empty
-#$emptyDestFol = (Get-ChildItem -Path $destFol -Force -File).Count -gt 0
+$emptyDestFol = (Get-ChildItem -Path $destFol -Force -Recurse).Count -gt 0
+# Checks if the destination folder is hidden
+$isDeleteInProg = (Get-Item -Path $destFol).Attributes -band [System.IO.FileAttributes]::Hidden
 # Get the current PowerShell process ID
 $scriptProcessId = $PID
 # Specify the program process name to close that has an active window
@@ -20,16 +22,17 @@ $procWithWindows = Get-Process | Where-Object { $_.MainWindowTitle -ne "" -and $
 ### Primary tasks
 
 ## Close active windows task
+<#
+Write-Host "Looking for active windows."
 # Close File Explorer
 ########################## Get-Process -Name "explorer" | Stop-Process -Force
 # Finds if there are active windows and closes them, continues until all windows are closed
-Write-Host "No active windows found."
 while ($procWithWindows) {
     foreach ($process in $procWithWindows) {
         # Gets the handle ID of the window
         $appPID = $process.Id
         # Write-Host $procWithWindows
-        # Write-Host $process
+        Write-Host $process
         # Write-Host $appPID
         # Force quit the program using the PID
         Stop-Process -Id $appPID -Force
@@ -39,18 +42,24 @@ while ($procWithWindows) {
     }
 }
 Write-Host "No active windows found."
-Start-Sleep -Seconds 20
+Start-Sleep -Seconds 5
+#>
 
-# ## Deleting files task
-# Write-Host "Deleting contents of $destFol..."
-# # Loop until the folder is empty
-# while ($emptyDestFol) {
-#     # Delete all files and subfolders within the destination folder
-#     Get-ChildItem -Path $destFol -Force | Remove-Item -Force -Recurse
-#     # Wait for a short period before checking again
-#     Start-Sleep -Seconds 5
-# }
-# Write-Host "Folder is empty."
+## Deleting files task
+Write-Host "$destFol has files in it: $emptyDestFol."
+# Loop until the folder is empty
+while ($emptyDestFol) {
+    if (-not $isDeleteInProg) {
+        # Delete all files and subfolders within the destination folder
+        Get-ChildItem -Path $destFol -Force | Remove-Item -Force -Recurse
+    }
+    # Wait for a short period before checking again
+    Start-Sleep -Milliseconds 100
+    $emptyDestFol = (Get-ChildItem -Path $destFol -Force -File).Count -gt 0
+    Write-Host "$destFol has files in it: $emptyDestFol."
+}
+Write-Host "$destFol has files in it: $emptyDestFol."
+Start-Sleep -Seconds 5
 
 # ## Copying files task
 # # Run the copy function
