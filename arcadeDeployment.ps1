@@ -1,31 +1,27 @@
 ### Initialization
 
 # Lock the computer
-########################## rundll32.exe user32.dll, LockWorkStation
+rundll32.exe user32.dll, LockWorkStation
 
 ## Set variables
-# Bool for successful copy task
-$allFilesCopied = $null
 # Specify the source folder where files are being copied from
-$sourFol = "C:\Path\to\source\folder"
+#$sourFol = "C:\gaim-arcade\ArcadeGames"
+$sourFol = "D:\Emulators\Games_old"
 # Specify the destination folder where files are being copied to
 $destFol = "C:\gaim-arcade-local\ArcadeGames"
-# Check if the destination folder is empty
-$emptyDestFol = (Get-ChildItem -Path $destFol -Force -Recurse).Count -gt 0
-# Checks if the destination folder is hidden
-$isDeleteInProg = (Get-Item -Path $destFol).Attributes -band [System.IO.FileAttributes]::Hidden
+# Bool for successful copy task
+$allFilesCopied = $false
 # Get the current PowerShell process ID
 $scriptProcessId = $PID
-# Specify the program process name to close that has an active window
-$procWithWindows = Get-Process | Where-Object { $_.MainWindowTitle -ne "" -and $_.ProcessName -ne "powershell" -and $_.Id -ne $scriptProcessId}
 
 ### Primary tasks
 
 ## Close active windows task
-<#
 Write-Host "Looking for active windows."
 # Close File Explorer
 ########################## Get-Process -Name "explorer" | Stop-Process -Force
+# Specify the program process name to close that has an active window
+$procWithWindows = Get-Process | Where-Object { $_.MainWindowTitle -ne "" -and $_.ProcessName -ne "powershell" -and $_.Id -ne $scriptProcessId}
 # Finds if there are active windows and closes them, continues until all windows are closed
 while ($procWithWindows) {
     foreach ($process in $procWithWindows) {
@@ -42,15 +38,16 @@ while ($procWithWindows) {
     }
 }
 Write-Host "No active windows found."
-Start-Sleep -Seconds 5
-#>
-
+Start-Sleep -Seconds 3
 
 ## Deleting files task
-<#
+# Check if the destination folder is empty
+$emptyDestFol = (Get-ChildItem -Path $destFol -Force -Recurse).Count -gt 0
 Write-Host "$destFol has files in it: $emptyDestFol."
 # Loop until the folder is empty
 while ($emptyDestFol) {
+    # Checks if the destination folder is hidden
+    $isDeleteInProg = (Get-Item -Path $destFol).Attributes -band [System.IO.FileAttributes]::Hidden
     if (-not $isDeleteInProg) {
         # Delete all files and subfolders within the destination folder
         Get-ChildItem -Path $destFol -Force | Remove-Item -Force -Recurse
@@ -61,41 +58,27 @@ while ($emptyDestFol) {
     Write-Host "$destFol has files in it: $emptyDestFol."
 }
 Write-Host "$destFol has files in it: $emptyDestFol."
-Start-Sleep -Seconds 5
-#>
+Start-Sleep -Seconds 3
 
 ## Copying files task
 # Run the copy function
-gameCopyTask
-
-if ($allFilesCopied -eq $true) {
-    Write-Host "All files were copied successfully."
-    # Restart the computer
-    Write-Host "Restarting the computer..."
-    #################Restart-Computer -Force
-}
-else {
-    Write-Host "There were some errors copying the files. Attempting another copy task"
-    gameCopyTask
-}
-
-### Functions
 function gameCopyTask {
+    param([ref]$allFilesCopied)
     # Copy the contents of the source folder to the destination folder
     Write-Host "Copying files from $sourFol to $destFol..."
-    $copyTask = Copy-Item -Path $sourFol\* -Destination $destFol -Force -Recurse -PassThru
-    # Check if the copying action is still ongoing
-    while ($copyTask.Status -eq "Running") {
-        # Wait for a short duration before checking again
-        Start-Sleep -Seconds 5
-    }
+    Copy-Item -Path $sourFol\* -Destination $destFol -Force -Recurse -PassThru
     # Check if the children files in the source folder are the same as the destination folder
     $sourceFiles = Get-ChildItem -Path $sourFol -File -Recurse | Select-Object -ExpandProperty FullName
     $destinationFiles = Get-ChildItem -Path $destFol -File -Recurse | Select-Object -ExpandProperty FullName
+    Write-Host "Scanning the $sourFol and $destFol folders."
+    Start-Sleep -Seconds 3
     $areFilesEqual = Compare-Object -ReferenceObject $sourceFiles -DifferenceObject $destinationFiles -IncludeEqual
-    if ($null -eq $areFilesEqual) {
+    Write-Host "Comparing the $sourFol and $destFol folders."
+    Start-Sleep -Seconds 3
+    # Write-Host $areFilesEqual
+    if ($null -ne $areFilesEqual) {
         Write-Host "All files have been successfully copied to $destFol."
-        global:$allFilesCopied = $true
+        $allFilesCopied.Value = $true
     }
     else {
         Write-Host "Some files were not copied correctly. Differences found:"
@@ -110,6 +93,19 @@ function gameCopyTask {
                 Write-Host "File exists in destination folder but not in source folder: $($_.InputObject)"
             }
         }
-        global:$allFilesCopied = $false
+    }
+}
+# Runs copy tasks until the source folder matches the destination folder
+while($allFilesCopied -eq $false){
+    gameCopyTask -allFilesCopied ([ref]$allFilesCopied)
+    if ($allFilesCopied -eq $true) {
+        # Files have copied successfully, the computer will restart now.
+        Write-Host "All files were copied successfully, restarting now."
+        Start-Sleep -Seconds 10
+        ########################## Restart-Computer -Force
+    }
+    else{# Attempt another copy task
+        Write-Host "Attempting another copy task."
+        Start-Sleep -Seconds 3
     }
 }
