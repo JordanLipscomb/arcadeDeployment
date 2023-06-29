@@ -19,7 +19,7 @@ $scriptProcessId = $PID
 ## Close active windows task
 Write-Host "Looking for active windows."
 # Close File Explorer
-########################## Get-Process -Name "explorer" | Stop-Process -Force
+Get-Process -Name "explorer" | Stop-Process -Force
 # Specify the program process name to close that has an active window
 $procWithWindows = Get-Process | Where-Object { $_.MainWindowTitle -ne "" -and $_.ProcessName -ne "powershell" -and $_.Id -ne $scriptProcessId}
 # Finds if there are active windows and closes them, continues until all windows are closed
