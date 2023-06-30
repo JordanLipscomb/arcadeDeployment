@@ -4,6 +4,8 @@
 rundll32.exe user32.dll, LockWorkStation
 
 ## Variables
+# Set if the game delpoyment process to true if you want to run this process.
+$runGameDeployment = $true
 # Get the current PowerShell process ID
 $scriptProcessId = $PID
 
@@ -37,11 +39,8 @@ Start-Sleep -Seconds 3
 if($runGameDeployment -eq $true){
 
     ## Variables
-    # Set if the game delpoyment process to true if you want to run this process.
-    $runGameDeployment = $false
     # Specify the source folder where files are being copied from
     $sourFol = "C:\gaim-arcade\ArcadeGames"
-    #$sourFol = "D:\Emulators\Games_old"
     # Specify the destination folder where files are being copied to
     $destFol = "C:\gaim-arcade-local\ArcadeGames"
     # Bool for successful copy task
