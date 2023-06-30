@@ -41,6 +41,7 @@ if($runGameDeployment -eq $true){
     ## Variables
     # Specify the source folder where files are being copied from
     $sourFol = "C:\gaim-arcade\ArcadeGames"
+    #$sourFol = "G:\Other computers\My Computer\gaim-arcade\ArcadeGames"
     # Specify the destination folder where files are being copied to
     $destFol = "C:\gaim-arcade-local\ArcadeGames"
     # Bool for successful copy task
