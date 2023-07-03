@@ -1,2 +1,2 @@
 Install-Module PS2EXE -Scope CurrentUser
-Invoke-ps2exe  C:\git-repositories\arcadeDelpoyment\arcadeDeployment.ps1 C:\gaim-arcade\ArcadeDeployment\arcadeDeployment.exe
+Invoke-ps2exe  C:\git-repositories\arcadeDeployment\arcadeDeployment.ps1 C:\gaim-arcade\ArcadeDeployment\arcadeDeployment.exe
