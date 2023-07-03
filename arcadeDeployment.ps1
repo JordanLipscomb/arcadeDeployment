@@ -4,12 +4,57 @@
 rundll32.exe user32.dll, LockWorkStation
 
 ## Variables
+# Define the path to the INI file
+$iniFilePath = "arcadeDeployment.ini"
+# Create a hashtable to store the INI file contents
+$iniData = @{}
 # Set if the game delpoyment process to true if you want to run this process.
-$runGameDeployment = $true
+$runGameDeployment = $null
+# Specify the source folder where files are being copied from
+$sourFol = $null
+# Specify the destination folder where files are being copied to
+$destFol = $null
 # Get the current PowerShell process ID
 $scriptProcessId = $PID
 
-### Primary tasks
+## Read the contents of the INI file
+$iniContent = Get-Content -Path $iniFilePath
+# Define the current section variable
+$currentSection = ""
+# Process each line of the INI file
+foreach ($line in $iniContent) {
+    # Skip empty lines and comments (lines starting with ";")
+    if (-not [string]::IsNullOrWhiteSpace($line) -and -not $line.TrimStart().StartsWith(";")) {
+        # Check if the line is a section header
+        if ($line -match "^\[(.*?)\]$") {
+            # Extract the section name
+            $currentSection = $Matches[1]
+        }
+        else {
+            # Split the line into key-value pairs
+            $key, $value = $line -split "=", 2
+
+            # Trim any whitespace from the key and value
+            $key = $key.Trim()
+            $value = $value.Trim()
+
+            # Create a hashtable for the current section if it doesn't exist
+            if (-not $iniData.ContainsKey($currentSection)) {
+                $iniData[$currentSection] = @{}
+            }
+
+            # Add the key-value pair to the hashtable
+            $iniData[$currentSection][$key] = $value
+        }
+    }
+}
+# Now you can access the values from the INI file using the section and key names
+$runGameDeployment = $iniData["runGameDeployment"]["rGDState"]
+$sourFol = $iniData["gameDeploymentFilePaths"]["gDSourFol"]
+$destFol = $iniData["gameDeploymentFilePaths"]["gDDestFol"]
+Start-Sleep -Seconds 3
+
+### Primary Tasks
 
 ## Close active windows task
 Write-Host "Looking for active windows."
@@ -39,11 +84,6 @@ Start-Sleep -Seconds 3
 if($runGameDeployment -eq $true){
 
     ## Variables
-    # Specify the source folder where files are being copied from
-    $sourFol = "C:\gaim-arcade\ArcadeGames"
-    #$sourFol = "G:\Other computers\My Computer\gaim-arcade\ArcadeGames"
-    # Specify the destination folder where files are being copied to
-    $destFol = "C:\gaim-arcade-local\ArcadeGames"
     # Bool for successful copy task
     $allFilesCopied = $false
 
