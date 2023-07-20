@@ -5,7 +5,7 @@ rundll32.exe user32.dll, LockWorkStation
 
 ## Variables
 # Define the path to the INI file
-$iniFilePath = "E:\Other computers\My Computer\gaim-arcade\ArcadeDeployment\arcadeDeployment.ini"
+$iniFilePath = "G:\Other computers\My Computer\gaim-arcade\ArcadeDeployment\arcadeDeployment.ini"
 # Create a hashtable to store the INI file contents
 $iniData = @{}
 # Set if the game delpoyment process to true if you want to run this process.
